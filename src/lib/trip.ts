@@ -64,7 +64,15 @@ const interestLabels: Record<string, string> = {
   adventure: "guided outdoor activities",
 };
 
-const baseAreas = ["Central District", "Old Town", "Riverside", "Museum Quarter"];
+const baseAreas = [
+  "Central District",
+  "Old Town",
+  "Riverside",
+  "Museum Quarter",
+  "Garden Quarter",
+  "Market District",
+  "Harborfront",
+];
 const weatherNotes = [
   "Mild morning, warmer afternoon, light jacket after sunset",
   "Clear early, scattered clouds later, comfortable walking weather",
@@ -89,7 +97,7 @@ const paceEstimates: Record<Pace, string> = {
 
 const interestStops: Record<string, string[]> = {
   food: ["Local Food Market", "Neighborhood Restaurant Row"],
-  history: ["Historic Center Walk", "Old Town Landmark Site"],
+  history: ["Historic Center Walk", "Landmark Site"],
   nature: ["City Viewpoint Trail", "Riverside Park"],
   museums: ["Museum Quarter", "Top Rated Gallery"],
   beaches: ["Waterfront Promenade", "Nearest Beach Area"],
@@ -97,6 +105,33 @@ const interestStops: Record<string, string[]> = {
   shopping: ["Central Shopping Mall", "Local Shopping Street"],
   adventure: ["Guided Outdoor Activity Base", "Scenic Adventure Stop"],
 };
+
+function areaSpecificStop(stop: string, area: string) {
+  const normalizedStop = stop.toLowerCase();
+  const normalizedArea = area.toLowerCase();
+
+  if (normalizedStop.includes(normalizedArea)) {
+    return stop;
+  }
+
+  if (normalizedStop.includes("central shopping mall")) {
+    return `${area} shopping mall`;
+  }
+
+  if (normalizedStop.includes("local shopping street")) {
+    return `${area} shopping street`;
+  }
+
+  if (normalizedStop.includes("local food market")) {
+    return `${area} food market`;
+  }
+
+  if (normalizedStop.includes("neighborhood restaurant row")) {
+    return `${area} restaurant row`;
+  }
+
+  return `${area} ${stop}`;
+}
 
 export const defaultForm: TripForm = {
   destination: "Lisbon, Portugal",
@@ -148,12 +183,20 @@ function mapSearchUrl(placeName: string, destination: string) {
 }
 
 function mapDirectionsUrl(stops: string[], destination: string) {
-  const places = stops.map((stop) => {
-    if (destination === "your destination" || stop.includes(destination)) {
-      return stop;
+  const seen = new Set<string>();
+  const places = stops.flatMap((stop) => {
+    const place =
+      destination === "your destination" || stop.includes(destination)
+        ? stop
+        : `${stop} ${destination}`;
+    const normalizedPlace = place.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+    if (!normalizedPlace || seen.has(normalizedPlace)) {
+      return [];
     }
 
-    return `${stop} ${destination}`;
+    seen.add(normalizedPlace);
+    return [place];
   });
   const [origin, ...remainingStops] = places;
   const routeDestination = remainingStops.pop() ?? origin;
@@ -193,21 +236,17 @@ export function buildTripPlan(form: TripForm): TripPlan {
     const base = bases[index % bases.length];
     const focus = interestLabels[interest] ?? "local highlights";
     const area = baseAreas[index % baseAreas.length];
-    const primaryStops = interestStops[interest] ?? [`${area} highlight`, `${area} viewpoint`];
+    const stopTemplates = interestStops[interest] ?? ["highlight", "viewpoint"];
+    const primaryStops = stopTemplates.map((stop) => areaSpecificStop(stop, area));
     const hasShoppingMall = interest === "shopping";
     const routeArea = `${area} ${destination}`;
+    const mallStop = "Central Shopping Mall";
+    const hasMallStop = primaryStops.some((stop) => stop.toLowerCase().includes("shopping mall"));
     const morningCafe = `${area} cafe`;
-    const lunchRestaurant = `${area} lunch restaurant`;
-    const snackStop = `${area} coffee shop`;
-    const dinnerRestaurant = `${area} dinner restaurant`;
     const dayStops = [
       routeArea,
-      morningCafe,
       ...primaryStops,
-      lunchRestaurant,
-      ...(hasShoppingMall ? ["Central Shopping Mall"] : [snackStop]),
-      dinnerRestaurant,
-      routeArea,
+      ...(hasShoppingMall && !hasMallStop ? [mallStop] : []),
     ];
 
     return {
@@ -222,7 +261,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         dailyPaceNote,
         hasShoppingMall
           ? "3:00 PM Shopping mall stop; reserve 1 hour for shopping time."
-          : `3:00 PM Optional ${snackStop}; reserve 15 min if you add the coffee stop.`,
+          : "3:00 PM Flexible open slot; avoid adding another coffee stop unless it is a different place.",
         `6:30 PM Dinner near ${base}; reserve 1 hour for restaurant time.`,
       ],
       estimate: budget.includes("$") ? paceEstimates[form.pace] : `${form.pace} daily spend`,
