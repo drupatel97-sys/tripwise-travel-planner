@@ -48,17 +48,27 @@ function App() {
   });
   const [plan, setPlan] = useState(() => buildTripPlan(defaultForm));
 
-  function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
+  function updateForm<K extends keyof TripForm>(
+    key: K,
+    value: TripForm[K],
+    refreshPlan = false,
+  ) {
+    const nextForm = { ...form, [key]: value };
+    setForm(nextForm);
+
+    if (refreshPlan) {
+      setPlan(buildTripPlan(nextForm));
+    }
   }
 
   function toggleInterest(interest: string) {
-    setForm((current) => {
-      const interests = current.interests.includes(interest)
-        ? current.interests.filter((item) => item !== interest)
-        : [...current.interests, interest];
-      return { ...current, interests };
-    });
+    const interests = form.interests.includes(interest)
+      ? form.interests.filter((item) => item !== interest)
+      : [...form.interests, interest];
+    const nextForm = { ...form, interests };
+
+    setForm(nextForm);
+    setPlan(buildTripPlan(nextForm));
   }
 
   function saveTrip() {
@@ -186,7 +196,8 @@ function App() {
                 className={form.baseStrategy === option.value ? "selected" : ""}
                 key={option.value}
                 type="button"
-                onClick={() => updateForm("baseStrategy", option.value)}
+                aria-pressed={form.baseStrategy === option.value}
+                onClick={() => updateForm("baseStrategy", option.value, true)}
               >
                 <span>{option.label}</span>
                 <small>{option.help}</small>
@@ -211,7 +222,8 @@ function App() {
                   className={form.pace === pace ? "selected" : ""}
                   key={pace}
                   type="button"
-                  onClick={() => updateForm("pace", pace)}
+                  aria-pressed={form.pace === pace}
+                  onClick={() => updateForm("pace", pace, true)}
                 >
                   {pace}
                 </button>
@@ -225,6 +237,7 @@ function App() {
                 className={form.interests.includes(interest) ? "selected" : ""}
                 key={interest}
                 type="button"
+                aria-pressed={form.interests.includes(interest)}
                 onClick={() => toggleInterest(interest)}
               >
                 {interest}

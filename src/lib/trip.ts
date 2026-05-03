@@ -73,6 +73,18 @@ const weatherNotes = [
   "Breezy and pleasant, good day for longer walks",
 ];
 
+const paceNotes: Record<Pace, string> = {
+  relaxed: "Keep one anchor activity and leave open time for cafes, rests, or slower transit.",
+  balanced: "Plan two main stops with a flexible slot for a guided experience or neighborhood walk.",
+  packed: "Add an early start and a late-afternoon bonus stop if transit and weather stay easy.",
+};
+
+const paceEstimates: Record<Pace, string> = {
+  relaxed: "$70 - $140 per person",
+  balanced: "$95 - $180 per person",
+  packed: "$130 - $240 per person",
+};
+
 export const defaultForm: TripForm = {
   destination: "Lisbon, Portugal",
   startDate: "2026-06-12",
@@ -124,6 +136,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
   const budget = optionalText(form.budget, "flexible");
   const stayPreference = optionalText(form.stayPreference, "any suitable stay");
   const selectedInterests = form.interests.length > 0 ? form.interests : ["food", "history"];
+  const dailyPaceNote = paceNotes[form.pace];
   const bases =
     form.baseStrategy === "single"
       ? [`${destination} central base`]
@@ -145,10 +158,10 @@ export function buildTripPlan(form: TripForm): TripPlan {
       items: [
         `Start near ${baseAreas[index % baseAreas.length]} with a highly rated cafe`,
         `Visit 2-3 ${focus}`,
-        `Hold a flexible slot for a guided experience or neighborhood walk`,
+        dailyPaceNote,
         `Dinner near transit back to ${base}`,
       ],
-      estimate: budget.includes("$") ? "$95 - $180 per person" : "moderate daily spend",
+      estimate: budget.includes("$") ? paceEstimates[form.pace] : `${form.pace} daily spend`,
     };
   });
 
