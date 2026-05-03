@@ -21,6 +21,7 @@ export type Stay = {
   nightly: string;
   rating: number;
   reason: string;
+  url: string;
 };
 
 export type Attraction = {
@@ -109,6 +110,12 @@ function optionalNumber(value: string, fallback: number, min: number, max: numbe
   return Math.min(Math.max(Math.round(parsed), min), max);
 }
 
+function hotelSearchUrl(stayName: string, destination: string) {
+  const query =
+    destination === "your destination" ? `${stayName} hotel` : `${stayName} ${destination}`;
+  return `https://www.google.com/travel/hotels?q=${encodeURIComponent(query)}`;
+}
+
 export function buildTripPlan(form: TripForm): TripPlan {
   const destination = optionalText(form.destination, "your destination");
   const dayCount = optionalNumber(form.days, 3, 1, 21);
@@ -168,6 +175,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         nightly: "$155 - $220",
         rating: 4.7,
         reason: "Best fit for transit, restaurants, and first-time orientation.",
+        url: hotelSearchUrl(`${destination} Garden House`, destination),
       },
       {
         name: "Harbor View Rooms",
@@ -176,6 +184,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         nightly: "$130 - $190",
         rating: 4.6,
         reason: "Good for scenic evenings and relaxed mornings near the water.",
+        url: hotelSearchUrl("Harbor View Rooms", destination),
       },
       {
         name: "Old Town Base Hotel",
@@ -184,6 +193,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         nightly: "$180 - $260",
         rating: 4.8,
         reason: "Strong review signals for walkability, service, and breakfast.",
+        url: hotelSearchUrl("Old Town Base Hotel", destination),
       },
     ],
     attractions: [

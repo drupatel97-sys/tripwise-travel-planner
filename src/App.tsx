@@ -5,6 +5,7 @@ import {
   Check,
   CloudSun,
   Compass,
+  ExternalLink,
   Hotel,
   Map,
   MapPin,
@@ -291,18 +292,31 @@ function App() {
               </div>
               <div className="stay-list">
                 {plan.stays.map((stay) => (
-                  <article className="stay-row" key={stay.name}>
+                  <a
+                    aria-label={`Open hotel search for ${stay.name}`}
+                    className="stay-row"
+                    href={stay.url}
+                    key={stay.name}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
                     <div>
                       <h4>{stay.name}</h4>
                       <p>{stay.area} · {stay.type}</p>
                       <small>{stay.reason}</small>
                     </div>
-                    <strong>{stay.nightly}</strong>
-                    <span>
-                      <Star size={14} fill="currentColor" />
-                      {stay.rating}
-                    </span>
-                  </article>
+                    <div className="stay-action">
+                      <strong>{stay.nightly}</strong>
+                      <span>
+                        <Star size={14} fill="currentColor" />
+                        {stay.rating}
+                      </span>
+                      <em>
+                        View
+                        <ExternalLink size={13} />
+                      </em>
+                    </div>
+                  </a>
                 ))}
               </div>
             </section>

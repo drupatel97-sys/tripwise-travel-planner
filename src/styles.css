@@ -510,6 +510,22 @@ h3 {
   grid-template-columns: 1fr auto;
   gap: 10px;
   padding: 13px;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.stay-row:hover,
+.stay-row:focus-visible {
+  background: #fffdfa;
+  box-shadow: inset 0 0 0 1px rgba(41, 102, 92, 0.26);
+  transform: translateY(-1px);
+}
+
+.stay-row:focus-visible {
+  outline: 3px solid rgba(41, 102, 92, 0.22);
+  outline-offset: 2px;
 }
 
 h4 {
@@ -532,20 +548,37 @@ h4 {
   margin-top: 6px;
 }
 
-.stay-row strong {
+.stay-action {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.stay-action strong {
   color: #29665c;
   font-size: 0.9rem;
 }
 
-.stay-row span {
+.stay-action span,
+.stay-action em {
   display: inline-flex;
-  grid-column: 2;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
+}
+
+.stay-action span {
   color: #b55a20;
   font-size: 0.82rem;
   font-weight: 850;
+}
+
+.stay-action em {
+  color: #29665c;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .attraction-row {
