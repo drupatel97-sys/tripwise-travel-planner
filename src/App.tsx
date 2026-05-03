@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   BedDouble,
   CalendarDays,
@@ -45,7 +45,7 @@ function App() {
     const stored = window.localStorage.getItem("tripwise.savedCount");
     return stored ? Number(stored) : 0;
   });
-  const plan = useMemo(() => buildTripPlan(form), [form]);
+  const [plan, setPlan] = useState(() => buildTripPlan(defaultForm));
 
   function updateForm<K extends keyof TripForm>(key: K, value: TripForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -64,6 +64,10 @@ function App() {
     const next = savedCount + 1;
     setSavedCount(next);
     window.localStorage.setItem("tripwise.savedCount", String(next));
+  }
+
+  function generatePlan() {
+    setPlan(buildTripPlan(form));
   }
 
   return (
@@ -102,7 +106,7 @@ function App() {
           <label className="field wide">
             <span>
               <Search size={16} />
-              Destination
+              Destination optional
             </span>
             <input
               value={form.destination}
@@ -115,7 +119,7 @@ function App() {
             <label className="field">
               <span>
                 <CalendarDays size={16} />
-                Start date
+                Start date optional
               </span>
               <input
                 type="date"
@@ -126,14 +130,14 @@ function App() {
             <label className="field">
               <span>
                 <SlidersHorizontal size={16} />
-                Days
+                Days optional
               </span>
               <input
                 type="number"
                 min={1}
                 max={21}
                 value={form.days}
-                onChange={(event) => updateForm("days", Number(event.target.value))}
+                onChange={(event) => updateForm("days", event.target.value)}
               />
             </label>
           </div>
@@ -142,7 +146,7 @@ function App() {
             <label className="field">
               <span>
                 <Plane size={16} />
-                Landing airport
+                Landing airport optional
               </span>
               <input
                 value={form.airport}
@@ -153,7 +157,7 @@ function App() {
             <label className="field">
               <span>
                 <Wallet size={16} />
-                Budget range
+                Budget range optional
               </span>
               <input
                 value={form.budget}
@@ -166,7 +170,7 @@ function App() {
           <label className="field wide">
             <span>
               <BedDouble size={16} />
-              Stay preference
+              Stay preference optional
             </span>
             <input
               value={form.stayPreference}
@@ -191,13 +195,13 @@ function App() {
 
           <div className="preference-row">
             <label className="field compact">
-              <span>Travelers</span>
+              <span>Travelers optional</span>
               <input
                 type="number"
                 min={1}
                 max={12}
                 value={form.travelers}
-                onChange={(event) => updateForm("travelers", Number(event.target.value))}
+                onChange={(event) => updateForm("travelers", event.target.value)}
               />
             </label>
             <div className="pace-picker" aria-label="Trip pace">
@@ -227,7 +231,7 @@ function App() {
             ))}
           </div>
 
-          <button className="primary-button" type="button">
+          <button className="primary-button" type="button" onClick={generatePlan}>
             <RefreshCw size={18} />
             Generate research plan
           </button>

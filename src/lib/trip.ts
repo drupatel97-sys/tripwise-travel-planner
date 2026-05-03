@@ -4,10 +4,10 @@ export type Pace = "relaxed" | "balanced" | "packed";
 export type TripForm = {
   destination: string;
   startDate: string;
-  days: number;
+  days: string;
   airport: string;
   budget: string;
-  travelers: number;
+  travelers: string;
   baseStrategy: BaseStrategy;
   pace: Pace;
   stayPreference: string;
@@ -75,10 +75,10 @@ const weatherNotes = [
 export const defaultForm: TripForm = {
   destination: "Lisbon, Portugal",
   startDate: "2026-06-12",
-  days: 5,
+  days: "5",
   airport: "LIS",
   budget: "$1,500 - $2,500",
-  travelers: 2,
+  travelers: "2",
   baseStrategy: "single",
   pace: "balanced",
   stayPreference: "Boutique hotel or apartment",
@@ -96,8 +96,26 @@ export const interestOptions = [
   "adventure",
 ];
 
+function optionalText(value: string, fallback: string) {
+  return value.trim() || fallback;
+}
+
+function optionalNumber(value: string, fallback: number, min: number, max: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return Math.min(Math.max(Math.round(parsed), min), max);
+}
+
 export function buildTripPlan(form: TripForm): TripPlan {
-  const destination = form.destination.trim() || "your destination";
+  const destination = optionalText(form.destination, "your destination");
+  const dayCount = optionalNumber(form.days, 3, 1, 21);
+  const travelers = optionalNumber(form.travelers, 1, 1, 12);
+  const airport = optionalText(form.airport, "the arrival point");
+  const budget = optionalText(form.budget, "flexible");
+  const stayPreference = optionalText(form.stayPreference, "any suitable stay");
   const selectedInterests = form.interests.length > 0 ? form.interests : ["food", "history"];
   const bases =
     form.baseStrategy === "single"
@@ -107,7 +125,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
           return `${area} for ${interestLabels[interest]?.split(" ")[0] ?? "local"} access`;
         });
 
-  const days = Array.from({ length: form.days }, (_, index) => {
+  const days = Array.from({ length: dayCount }, (_, index) => {
     const interest = selectedInterests[index % selectedInterests.length];
     const base = bases[index % bases.length];
     const focus = interestLabels[interest] ?? "local highlights";
@@ -123,18 +141,18 @@ export function buildTripPlan(form: TripForm): TripPlan {
         `Hold a flexible slot for a guided experience or neighborhood walk`,
         `Dinner near transit back to ${base}`,
       ],
-      estimate: form.budget.includes("$") ? "$95 - $180 per person" : "moderate daily spend",
+      estimate: budget.includes("$") ? "$95 - $180 per person" : "moderate daily spend",
     };
   });
 
   const strategy =
     form.baseStrategy === "single"
-      ? `Use one base near transit from ${form.airport || "the arrival point"} to reduce packing time and make day trips simpler.`
+      ? `Use one base near transit from ${airport} to reduce packing time and make day trips simpler.`
       : `Split the stay across ${Math.min(3, bases.length)} bases so each cluster of activities has less daily travel time.`;
 
   return {
-    title: `${form.days}-day ${destination} research plan`,
-    summary: `${form.travelers} traveler${form.travelers === 1 ? "" : "s"} · ${form.pace} pace · ${form.stayPreference} · budget ${form.budget}`,
+    title: `${dayCount}-day ${destination} research plan`,
+    summary: `${travelers} traveler${travelers === 1 ? "" : "s"} · ${form.pace} pace · ${stayPreference} · budget ${budget}`,
     strategy,
     generatedAt: new Intl.DateTimeFormat("en", {
       month: "short",
@@ -146,7 +164,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
       {
         name: `${destination} Garden House`,
         area: "Central District",
-        type: form.stayPreference,
+        type: stayPreference,
         nightly: "$155 - $220",
         rating: 4.7,
         reason: "Best fit for transit, restaurants, and first-time orientation.",
