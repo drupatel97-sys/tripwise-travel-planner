@@ -40,13 +40,78 @@ const baseOptions: Array<{ value: BaseStrategy; label: string; help: string }> =
   },
 ];
 
+const destinationSuggestions = [
+  { label: "Lisbon, Portugal", airport: "LIS", hint: "Humberto Delgado Airport" },
+  { label: "Paris, France", airport: "CDG", hint: "Charles de Gaulle Airport" },
+  { label: "London, United Kingdom", airport: "LHR", hint: "Heathrow Airport" },
+  { label: "Rome, Italy", airport: "FCO", hint: "Leonardo da Vinci-Fiumicino Airport" },
+  { label: "Barcelona, Spain", airport: "BCN", hint: "Barcelona-El Prat Airport" },
+  { label: "Tokyo, Japan", airport: "HND", hint: "Haneda Airport" },
+  { label: "New York, United States", airport: "JFK", hint: "John F. Kennedy International" },
+  { label: "Los Angeles, United States", airport: "LAX", hint: "Los Angeles International" },
+  { label: "Dubai, United Arab Emirates", airport: "DXB", hint: "Dubai International" },
+  { label: "Istanbul, Turkiye", airport: "IST", hint: "Istanbul Airport" },
+  { label: "Bangkok, Thailand", airport: "BKK", hint: "Suvarnabhumi Airport" },
+  { label: "Cancun, Mexico", airport: "CUN", hint: "Cancun International" },
+];
+
+const airportSuggestions = [
+  { code: "LIS", city: "Lisbon, Portugal", name: "Humberto Delgado Airport" },
+  { code: "CDG", city: "Paris, France", name: "Charles de Gaulle Airport" },
+  { code: "ORY", city: "Paris, France", name: "Paris Orly Airport" },
+  { code: "LHR", city: "London, United Kingdom", name: "Heathrow Airport" },
+  { code: "LGW", city: "London, United Kingdom", name: "Gatwick Airport" },
+  { code: "FCO", city: "Rome, Italy", name: "Leonardo da Vinci-Fiumicino Airport" },
+  { code: "BCN", city: "Barcelona, Spain", name: "Barcelona-El Prat Airport" },
+  { code: "HND", city: "Tokyo, Japan", name: "Haneda Airport" },
+  { code: "NRT", city: "Tokyo, Japan", name: "Narita International Airport" },
+  { code: "JFK", city: "New York, United States", name: "John F. Kennedy International" },
+  { code: "EWR", city: "New York, United States", name: "Newark Liberty International" },
+  { code: "LAX", city: "Los Angeles, United States", name: "Los Angeles International" },
+  { code: "DXB", city: "Dubai, United Arab Emirates", name: "Dubai International" },
+  { code: "IST", city: "Istanbul, Turkiye", name: "Istanbul Airport" },
+  { code: "BKK", city: "Bangkok, Thailand", name: "Suvarnabhumi Airport" },
+  { code: "CUN", city: "Cancun, Mexico", name: "Cancun International" },
+];
+
+function matchesSuggestion(query: string, values: string[]) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return values.some((value) => value.toLowerCase().includes(normalizedQuery));
+}
+
 function App() {
   const [form, setForm] = useState<TripForm>(defaultForm);
+  const [activeSuggestions, setActiveSuggestions] = useState<"destination" | "airport" | null>(
+    null,
+  );
   const [savedCount, setSavedCount] = useState(() => {
     const stored = window.localStorage.getItem("tripwise.savedCount");
     return stored ? Number(stored) : 0;
   });
   const [plan, setPlan] = useState(() => buildTripPlan(defaultForm));
+  const destinationMatches = destinationSuggestions
+    .filter((suggestion) =>
+      matchesSuggestion(form.destination, [suggestion.label, suggestion.airport, suggestion.hint]),
+    )
+    .slice(0, 6);
+  const airportMatches = airportSuggestions
+    .filter((suggestion) => {
+      const airportQuery = form.airport.trim();
+      const destinationQuery = form.destination.trim();
+
+      return (
+        matchesSuggestion(airportQuery, [suggestion.code, suggestion.name, suggestion.city]) &&
+        (!destinationQuery ||
+          matchesSuggestion(destinationQuery, [suggestion.city, suggestion.code, suggestion.name]) ||
+          airportQuery.length > 0)
+      );
+    })
+    .slice(0, 6);
 
   function updateForm<K extends keyof TripForm>(
     key: K,
@@ -69,6 +134,29 @@ function App() {
 
     setForm(nextForm);
     setPlan(buildTripPlan(nextForm));
+  }
+
+  function selectDestination(suggestion: (typeof destinationSuggestions)[number]) {
+    const nextForm = {
+      ...form,
+      airport: suggestion.airport,
+      destination: suggestion.label,
+    };
+
+    setForm(nextForm);
+    setPlan(buildTripPlan(nextForm));
+    setActiveSuggestions(null);
+  }
+
+  function selectAirport(suggestion: (typeof airportSuggestions)[number]) {
+    const nextForm = {
+      ...form,
+      airport: suggestion.code,
+    };
+
+    setForm(nextForm);
+    setPlan(buildTripPlan(nextForm));
+    setActiveSuggestions(null);
   }
 
   function saveTrip() {
@@ -114,17 +202,41 @@ function App() {
             <Sparkles className="heading-icon" size={26} />
           </div>
 
-          <label className="field wide">
-            <span>
+          <div className="field wide suggest-field">
+            <label htmlFor="destination-input">
               <Search size={16} />
               Destination optional
-            </span>
+            </label>
             <input
+              autoComplete="off"
+              id="destination-input"
               value={form.destination}
-              onChange={(event) => updateForm("destination", event.target.value)}
+              onBlur={() => setActiveSuggestions(null)}
+              onChange={(event) => {
+                setActiveSuggestions("destination");
+                updateForm("destination", event.target.value);
+              }}
+              onFocus={() => setActiveSuggestions("destination")}
               placeholder="City, town, region, or country"
             />
-          </label>
+            {activeSuggestions === "destination" && destinationMatches.length > 0 ? (
+              <div className="suggest-menu">
+                {destinationMatches.map((suggestion) => (
+                  <button
+                    key={suggestion.label}
+                    type="button"
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      selectDestination(suggestion);
+                    }}
+                  >
+                    <strong>{suggestion.label}</strong>
+                    <small>{suggestion.airport} · {suggestion.hint}</small>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
           <div className="field-grid">
             <label className="field">
@@ -154,17 +266,41 @@ function App() {
           </div>
 
           <div className="field-grid">
-            <label className="field">
-              <span>
+            <div className="field suggest-field">
+              <label htmlFor="airport-input">
                 <Plane size={16} />
                 Landing airport optional
-              </span>
+              </label>
               <input
+                autoComplete="off"
+                id="airport-input"
                 value={form.airport}
-                onChange={(event) => updateForm("airport", event.target.value)}
+                onBlur={() => setActiveSuggestions(null)}
+                onChange={(event) => {
+                  setActiveSuggestions("airport");
+                  updateForm("airport", event.target.value.toUpperCase());
+                }}
+                onFocus={() => setActiveSuggestions("airport")}
                 placeholder="JFK, LIS, NRT"
               />
-            </label>
+              {activeSuggestions === "airport" && airportMatches.length > 0 ? (
+                <div className="suggest-menu">
+                  {airportMatches.map((suggestion) => (
+                    <button
+                      key={suggestion.code}
+                      type="button"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        selectAirport(suggestion);
+                      }}
+                    >
+                      <strong>{suggestion.code} · {suggestion.city}</strong>
+                      <small>{suggestion.name}</small>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <label className="field">
               <span>
                 <Wallet size={16} />

@@ -190,12 +190,14 @@ h1 {
 }
 
 .field,
-.field span {
+.field span,
+.field label {
   display: grid;
   gap: 8px;
 }
 
-.field span {
+.field span,
+.field label {
   grid-auto-flow: column;
   justify-content: start;
   align-items: center;
@@ -203,6 +205,54 @@ h1 {
   font-size: 0.8rem;
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.suggest-field {
+  position: relative;
+}
+
+.suggest-menu {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(23, 32, 29, 0.14);
+  border-radius: 8px;
+  background: #fffdfa;
+  box-shadow: 0 14px 34px rgba(23, 32, 29, 0.16);
+}
+
+.suggest-menu button {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  color: #17201d;
+  border: 0;
+  border-bottom: 1px solid rgba(23, 32, 29, 0.08);
+  background: transparent;
+  text-align: left;
+}
+
+.suggest-menu button:last-child {
+  border-bottom: 0;
+}
+
+.suggest-menu button:hover,
+.suggest-menu button:focus-visible {
+  background: #f3f0e7;
+}
+
+.suggest-menu strong {
+  font-size: 0.87rem;
+}
+
+.suggest-menu small {
+  color: #657069;
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .field input {
