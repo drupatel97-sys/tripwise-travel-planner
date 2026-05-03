@@ -341,14 +341,28 @@ function App() {
               </div>
               <div className="attraction-list">
                 {plan.attractions.map((attraction) => (
-                  <article className="attraction-row" key={attraction.name}>
+                  <a
+                    aria-label={`Open map for ${attraction.name}`}
+                    className="attraction-row"
+                    href={attraction.mapUrl}
+                    key={attraction.name}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
                     <div>
                       <h4>{attraction.name}</h4>
                       <p>{attraction.reviewSignal}</p>
                     </div>
                     <span>{attraction.category}</span>
-                    <small>{attraction.distance} · {attraction.rating}</small>
-                  </article>
+                    <small>
+                      {attraction.distance} · {attraction.rating}
+                      <em>
+                        <MapPin size={13} />
+                        Map
+                        <ExternalLink size={13} />
+                      </em>
+                    </small>
+                  </a>
                 ))}
               </div>
             </section>

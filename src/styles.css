@@ -505,25 +505,32 @@ h3 {
   background: #f7f7f2;
 }
 
-.stay-row {
+.stay-row,
+.attraction-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
-  padding: 13px;
   transition:
     background 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
 }
 
+.stay-row {
+  gap: 10px;
+  padding: 13px;
+}
+
 .stay-row:hover,
-.stay-row:focus-visible {
+.stay-row:focus-visible,
+.attraction-row:hover,
+.attraction-row:focus-visible {
   background: #fffdfa;
   box-shadow: inset 0 0 0 1px rgba(41, 102, 92, 0.26);
   transform: translateY(-1px);
 }
 
-.stay-row:focus-visible {
+.stay-row:focus-visible,
+.attraction-row:focus-visible {
   outline: 3px solid rgba(41, 102, 92, 0.22);
   outline-offset: 2px;
 }
@@ -582,8 +589,6 @@ h4 {
 }
 
 .attraction-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
   gap: 8px;
   padding: 13px;
 }
@@ -599,7 +604,22 @@ h4 {
 }
 
 .attraction-row small {
+  display: flex;
+  flex-wrap: wrap;
   grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.attraction-row em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #29665c;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .itinerary {

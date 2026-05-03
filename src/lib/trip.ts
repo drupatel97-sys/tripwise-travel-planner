@@ -30,6 +30,7 @@ export type Attraction = {
   rating: number;
   reviewSignal: string;
   distance: string;
+  mapUrl: string;
 };
 
 export type DayPlan = {
@@ -128,6 +129,12 @@ function hotelSearchUrl(stayName: string, destination: string) {
   return `https://www.google.com/travel/hotels?q=${encodeURIComponent(query)}`;
 }
 
+function mapSearchUrl(placeName: string, destination: string) {
+  const query =
+    destination === "your destination" ? placeName : `${placeName} ${destination}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 export function buildTripPlan(form: TripForm): TripPlan {
   const destination = optionalText(form.destination, "your destination");
   const dayCount = optionalNumber(form.days, 3, 1, 21);
@@ -216,6 +223,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         rating: 4.8,
         reviewSignal: "Visitors praise the views, architecture, and easy self-guided route.",
         distance: "12 min from central base",
+        mapUrl: mapSearchUrl("Historic Center Walk", destination),
       },
       {
         name: "Local Food Market",
@@ -223,6 +231,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         rating: 4.6,
         reviewSignal: "Reviews mention variety, quick lunches, and good rainy-day backup.",
         distance: "8 min by transit",
+        mapUrl: mapSearchUrl("Local Food Market", destination),
       },
       {
         name: "City Viewpoint Trail",
@@ -230,6 +239,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         rating: 4.7,
         reviewSignal: "Best rated around sunset, with notes about comfortable shoes.",
         distance: "18 min ride",
+        mapUrl: mapSearchUrl("City Viewpoint Trail", destination),
       },
       {
         name: "Museum Quarter",
@@ -237,6 +247,7 @@ export function buildTripPlan(form: TripForm): TripPlan {
         rating: 4.5,
         reviewSignal: "Reliable option for hot or rainy afternoons.",
         distance: "15 min from Old Town",
+        mapUrl: mapSearchUrl("Museum Quarter", destination),
       },
     ],
     days,
