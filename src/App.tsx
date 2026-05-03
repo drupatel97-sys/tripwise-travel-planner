@@ -388,6 +388,17 @@ function App() {
                   </div>
                   <div className="day-meta">
                     <span>{day.base}</span>
+                    <a
+                      aria-label={`Open map route for day ${day.day}`}
+                      className="day-map-link"
+                      href={day.mapUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <MapPin size={13} />
+                      Map route
+                      <ExternalLink size={13} />
+                    </a>
                     <strong>{day.estimate}</strong>
                   </div>
                 </article>

@@ -664,6 +664,24 @@ h4 {
   color: #8f3f13;
 }
 
+.day-map-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  color: #29665c;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.day-map-link:hover,
+.day-map-link:focus-visible {
+  color: #1d4f48;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 1080px) {
   .workspace {
     grid-template-columns: 1fr;

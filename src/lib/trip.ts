@@ -40,6 +40,7 @@ export type DayPlan = {
   focus: string;
   items: string[];
   estimate: string;
+  mapUrl: string;
 };
 
 export type TripPlan = {
@@ -84,6 +85,17 @@ const paceEstimates: Record<Pace, string> = {
   relaxed: "$70 - $140 per person",
   balanced: "$95 - $180 per person",
   packed: "$130 - $240 per person",
+};
+
+const interestStops: Record<string, string[]> = {
+  food: ["Local Food Market", "Neighborhood Restaurant Row"],
+  history: ["Historic Center Walk", "Old Town Landmark Site"],
+  nature: ["City Viewpoint Trail", "Riverside Park"],
+  museums: ["Museum Quarter", "Top Rated Gallery"],
+  beaches: ["Waterfront Promenade", "Nearest Beach Area"],
+  nightlife: ["Evening District", "Live Music Street"],
+  shopping: ["Central Shopping Mall", "Local Shopping Street"],
+  adventure: ["Guided Outdoor Activity Base", "Scenic Adventure Stop"],
 };
 
 export const defaultForm: TripForm = {
@@ -135,6 +147,30 @@ function mapSearchUrl(placeName: string, destination: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+function mapDirectionsUrl(stops: string[], destination: string) {
+  const places = stops.map((stop) => {
+    if (destination === "your destination" || stop.includes(destination)) {
+      return stop;
+    }
+
+    return `${stop} ${destination}`;
+  });
+  const [origin, ...remainingStops] = places;
+  const routeDestination = remainingStops.pop() ?? origin;
+  const params = new URLSearchParams({
+    api: "1",
+    origin,
+    destination: routeDestination,
+    travelmode: "walking",
+  });
+
+  if (remainingStops.length > 0) {
+    params.set("waypoints", remainingStops.join("|"));
+  }
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
 export function buildTripPlan(form: TripForm): TripPlan {
   const destination = optionalText(form.destination, "your destination");
   const dayCount = optionalNumber(form.days, 3, 1, 21);
@@ -156,6 +192,23 @@ export function buildTripPlan(form: TripForm): TripPlan {
     const interest = selectedInterests[index % selectedInterests.length];
     const base = bases[index % bases.length];
     const focus = interestLabels[interest] ?? "local highlights";
+    const area = baseAreas[index % baseAreas.length];
+    const primaryStops = interestStops[interest] ?? [`${area} highlight`, `${area} viewpoint`];
+    const hasShoppingMall = interest === "shopping";
+    const routeArea = `${area} ${destination}`;
+    const morningCafe = `${area} cafe`;
+    const lunchRestaurant = `${area} lunch restaurant`;
+    const snackStop = `${area} coffee shop`;
+    const dinnerRestaurant = `${area} dinner restaurant`;
+    const dayStops = [
+      routeArea,
+      morningCafe,
+      ...primaryStops,
+      lunchRestaurant,
+      ...(hasShoppingMall ? ["Central Shopping Mall"] : [snackStop]),
+      dinnerRestaurant,
+      routeArea,
+    ];
 
     return {
       day: index + 1,
@@ -163,12 +216,17 @@ export function buildTripPlan(form: TripForm): TripPlan {
       weather: weatherNotes[index % weatherNotes.length],
       focus,
       items: [
-        `Start near ${baseAreas[index % baseAreas.length]} with a highly rated cafe`,
-        `Visit 2-3 ${focus}`,
+        `9:00 AM Start at ${morningCafe}; include a 15 min snack/coffee break if you stop there.`,
+        `10:00 AM Visit ${primaryStops.join(" and ")} for ${focus}.`,
+        `12:00 PM Lunch near ${area}; reserve 1 hour for restaurant time.`,
         dailyPaceNote,
-        `Dinner near transit back to ${base}`,
+        hasShoppingMall
+          ? "3:00 PM Shopping mall stop; reserve 1 hour for shopping time."
+          : `3:00 PM Optional ${snackStop}; reserve 15 min if you add the coffee stop.`,
+        `6:30 PM Dinner near ${base}; reserve 1 hour for restaurant time.`,
       ],
       estimate: budget.includes("$") ? paceEstimates[form.pace] : `${form.pace} daily spend`,
+      mapUrl: mapDirectionsUrl(dayStops, destination),
     };
   });
 
